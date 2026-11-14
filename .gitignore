@@ -1,0 +1,5 @@
+﻿*.log
+drive.out
+SysReport/
+report/
+*.zip

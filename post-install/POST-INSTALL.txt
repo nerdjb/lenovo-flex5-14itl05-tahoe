@@ -1,0 +1,17 @@
+POST-INSTALL (do this only AFTER Tahoe 26.7.1 is running)
+
+1. Copy NootedGreen.kext and AMFIPass.kext into EFI/OC/Kexts
+2. Add both to Kernel > Add in config.plist (order: after Lilu/WhateverGreen)
+3. Change boot-args to:
+
+   keepsyms=1 debug=0x100 alcid=11 amfi_get_out_of_my_way=1 -allow3d -disablegfxfirmware ngreen-eu=80 ngreen-l3=6
+
+   (removed: -v, -igfxvesa)
+4. Reboot. Verify with:  system_profiler SPDisplaysDataType
+
+DeviceProperties for the iGPU are already in config.plist from the start
+(AAPL,ig-platform-id 0x9A490000 / device-id 0x9A49) - they are inert while
+-igfxvesa is present, so nothing else needs editing.
+
+Audio: layout-id 11 is set. If speakers/mic are wrong, try 18, 96, 97, 99, 100, 101.
+Touchpad flaky? add -vi2c-force-polling to boot-args.

@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>macOS Tahoe 26 on Lenovo IdeaPad Flex 5 14ITL05 - Complete Guide</title>
+<style>
+  :root { --ink:#1c1c1e; --mut:#5b5b60; --line:#d8d8dd; --bg:#ffffff; --code:#f4f4f6; --ok:#1a7f37; --warn:#9a6700; --bad:#b42318; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+         font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+  .wrap { max-width:900px; margin:0 auto; padding:48px 24px 96px; }
+  h1 { font-size:30px; line-height:1.25; margin:0 0 6px; letter-spacing:-.4px; }
+  .sub { color:var(--mut); margin:0 0 32px; }
+  h2 { font-size:21px; margin:44px 0 12px; padding-top:14px; border-top:1px solid var(--line); letter-spacing:-.2px; }
+  h3 { font-size:17px; margin:26px 0 8px; }
+  p, li { color:var(--ink); }
+  ul, ol { padding-left:22px; }
+  li { margin:5px 0; }
+  code { background:var(--code); padding:2px 5px; border-radius:4px; font-size:13.5px;
+         font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+  pre { background:var(--code); padding:14px 16px; border-radius:8px; overflow-x:auto;
+        font-size:13.5px; line-height:1.5; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+  pre code { background:none; padding:0; }
+  table { border-collapse:collapse; width:100%; margin:14px 0; font-size:14.5px; }
+  th, td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { font-weight:600; background:#fafafa; }
+  .toc { background:#fafafa; border:1px solid var(--line); border-radius:10px; padding:18px 22px; }
+  .toc ol { margin:6px 0 0; }
+  .toc a { color:var(--ink); text-decoration:none; border-bottom:1px dotted var(--line); }
+  .note, .warn, .bad { border-left:3px solid; padding:10px 14px; margin:16px 0; border-radius:0 6px 6px 0; }
+  .note { border-color:#4a7dff; background:#f2f6ff; }
+  .warn { border-color:#d9a300; background:#fffaf0; }
+  .bad  { border-color:#d92d20; background:#fff5f4; }
+  .note p, .warn p, .bad p { margin:4px 0; }
+  .y { color:var(--ok); font-weight:600; }
+  .n { color:var(--bad); font-weight:600; }
+  .m { color:var(--warn); font-weight:600; }
+  .kicker { text-transform:uppercase; letter-spacing:.8px; font-size:12px; color:var(--mut); font-weight:600; }
+  footer { margin-top:56px; padding-top:18px; border-top:1px solid var(--line); color:var(--mut); font-size:13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>macOS Tahoe 26 on a Lenovo IdeaPad Flex 5 14ITL05</h1>
+<p class="sub">OpenCore 1.0.8 &middot; i5-1135G7 &middot; Iris Xe 80 EU (9A49) &middot; hardware guide, no internet required</p>
+
+<div class="toc">
+<p class="kicker">Contents</p>
+<ol>
+  <li><a href="#hw">Hardware and what it is</a></li>
+  <li><a href="#status">What works, what does not</a></li>
+  <li><a href="#files">Files on the USB stick</a></li>
+  <li><a href="#bios">BIOS settings</a></li>
+  <li><a href="#install">Installation</a></li>
+  <li><a href="#post">Post-install: acceleration</a></li>
+  <li><a href="#gpu">GPU performance</a></li>
+  <li><a href="#cpu">CPU performance</a></li>
+  <li><a href="#pen">Pen, touchscreen, touchpad</a></li>
+  <li><a href="#trouble">Troubleshooting</a></li>
+  <li><a href="#recover">Recovery and rollback</a></li>
+</ol>
+</div>
+
+<h2 id="hw">1. Hardware and what it is</h2>
+
+<table>
+<tr><th>Component</th><th>Identified as</th><th>Driver</th></tr>
+<tr><td>CPU</td><td>i5-1135G7, Tiger Lake-UP3, 4C/8T</td><td>native XCPM</td></tr>
+<tr><td>GPU</td><td>Intel Iris Xe, <code>8086:9A49</code>, 80 EU, 6 L3 banks</td><td>Apple TGL driver + NootedGreen</td></tr>
+<tr><td>Wi-Fi</td><td>AX201, <code>8086:A0F0</code></td><td>AirportItlwm (laobamac build)</td></tr>
+<tr><td>Bluetooth</td><td>AX201, <code>8087:0026</code></td><td>IntelBluetoothFirmware + BlueToolFixup</td></tr>
+<tr><td>Audio</td><td>Realtek ALC257, <code>10EC:0257</code></td><td>AppleALC + SimpleHDA, layout 11</td></tr>
+<tr><td>Storage</td><td>WD SN530 NVMe (DRAM-less)</td><td>NVMeFix, trim off</td></tr>
+<tr><td>Touchpad</td><td>ELAN06FA (I2C HID)</td><td>VoodooI2C + VoodooI2CHID</td></tr>
+<tr><td>Touchscreen + pen</td><td>Wacom <code>WACF2200</code> (I2C HID)</td><td>VoodooI2CHID</td></tr>
+<tr><td>Panel</td><td>LEN40A9, 1920&times;1080</td><td>SSDT-PNLF + BrightnessKeys</td></tr>
+<tr><td>Fingerprint</td><td>Goodix <code>27C6:55B4</code></td><td><span class="n">not supported</span> (libfprint only, sudo)</td></tr>
+</table>
+
+<div class="note">
+<p><strong>ACPI namespace quirk:</strong> this firmware uses <code>PC00</code>, not <code>PCI0</code>. Every path is
+<code>\_SB.PC00.GFX0</code>, <code>\_SB.PC00.I2C0.TPD0</code>, <code>\_SB.PC00.CNVW</code>. Guides written for
+<code>PCI0</code> will not apply unchanged.</p>
+</div>
+
+<h2 id="status">2. What works, what does not</h2>
+
+<table>
+<tr><th>Feature</th><th>State</th><th>Notes</th></tr>
+<tr><td>Metal / GPU acceleration</td><td class="y">works</td><td>the main goal, from NootedGreen</td></tr>
+<tr><td>OpenGL</td><td class="m">software only</td><td>macOS Tahoe ships <em>no</em> Tiger Lake OpenGL driver. Hard limit of this stack, not a config mistake.</td></tr>
+<tr><td>Hardware video decode</td><td class="m">after extra step</td><td>needs <code>-ngreengva</code> + the patched VA plugin from the repo</td></tr>
+<tr><td>Vulkan</td><td class="y">works</td><td>Vulkan 1.4 via MoltenVK on top of Metal</td></tr>
+<tr><td>Wi-Fi / Bluetooth / AirDrop</td><td class="y">works</td><td>AirportItlwm gives native Wi-Fi menu</td></tr>
+<tr><td>Audio</td><td class="m">unverified</td><td>Tahoe removed AppleHDA; SimpleHDA injects it without root patches</td></tr>
+<tr><td>Sleep / lid</td><td class="m">partly</td><td>the repo ships LaunchAgents for lid behaviour</td></tr>
+<tr><td>Touchpad (multitouch)</td><td class="y">works</td><td>GPIO interrupts already declared in your DSDT</td></tr>
+<tr><td>Touchscreen + pen</td><td class="m">expected</td><td>Wacom AES pen under VoodooI2CHID; must be tested live</td></tr>
+<tr><td>Fingerprint</td><td class="n">no</td><td>Goodix; only sudo via libfprint on other machines</td></tr>
+</table>
+
+<h2 id="files">3. Files on the USB stick</h2>
+
+<pre>USB root (FAT32, GPT, label MACINSTALL)
+├─ EFI\                       OpenCore 1.0.8, 30 active kexts, 11 SSDTs, config.plist
+├─ com.apple.recovery.boot\   BaseSystem.dmg + chunklist (Apple signature verified)
+├─ post-install\              NootedGreen.kext, AMFIPass.kext, POST-INSTALL.txt
+├─ GUIDE.md                   short text version of this document
+└─ MACOS-TAHOE-GUIDE.html     this file</pre>
+
+<p>The stick is readable from any Windows, macOS or Linux machine, so you can open this guide
+while the laptop is mid-install.</p>
+
+<h2 id="bios">4. BIOS settings</h2>
+
+<p><code>F2</code> at power-on. Everything below is in the normal menus &mdash; no BIOS modding is required or recommended.</p>
+
+<table>
+<tr><th>Setting</th><th>Value</th></tr>
+<tr><td>Secure Boot</td><td>Disabled</td></tr>
+<tr><td>Boot Mode</td><td>UEFI only (CSM/Legacy off)</td></tr>
+<tr><td>Fast Boot</td><td>Disabled</td></tr>
+<tr><td>Storage controller / Intel VMD / Rapid Storage</td><td>AHCI / off (never RAID)</td></tr>
+<tr><td>VT-d</td><td>can stay on (config uses <code>DisableIoMapper</code>)</td></tr>
+</table>
+
+<p><strong>CFG Lock (MSR 0xE2):</strong> no action. <code>AppleXcpmCfgLock=True</code> is already set in the config.
+If you ever want to do it properly, <code>ControlMsrE2.efi</code> ships in the OpenCore package.</p>
+
+<p><strong>DVMT:</strong> leave the BIOS alone. Default 32&nbsp;MB is fine at 1080p; the config already lies about
+stolen memory (<code>framebuffer-stolenmem</code> = 63&nbsp;MB) if it becomes necessary.</p>
+
+<h2 id="install">5. Installation</h2>
+
+<ol>
+  <li><code>F12</code> at power-on &rarr; choose the USB stick &rarr; <strong>OpenCore</strong>.</li>
+  <li>Picker shows <em>macOS Base System</em>. Boot it. Verbose text, then a slow VESA desktop &mdash; no acceleration yet, this is normal.</li>
+  <li>Connect to Wi-Fi (AirportItlwm is loaded, so the menu exists). The installer downloads macOS from Apple.</li>
+  <li>Open <strong>Disk Utility</strong> &rarr; View &rarr; Show All Devices &rarr; select the SN530 &rarr; <strong>Erase</strong> &rarr; APFS, GUID.</li>
+  <li>Close, run <strong>Install macOS Tahoe</strong>. It installs roughly 26.0 and reboots several times &mdash; keep choosing the USB, then the macOS entry.</li>
+  <li>After setup, run <strong>System Settings &rarr; General &rarr; Software Update</strong> and install <strong>26.7.1 (25G241)</strong>.</li>
+</ol>
+
+<div class="warn">
+<p>The acceleration stack is built and byte-checked against <strong>26.7.1 (25G241)</strong>. Do not apply it before that
+update, and do not jump to a later major version afterwards.</p>
+</div>
+
+<h2 id="post">6. Post-install: acceleration</h2>
+
+<p>Everything in this section happens <em>on macOS</em>, after 26.7.1 is running. The install EFI deliberately
+contains no NootedGreen &mdash; it cannot load before the driver stack exists.</p>
+
+<h3>6.1 Get the stack</h3>
+<pre>cd ~
+git clone https://github.com/JulioNectar/Hackintosh-XPS13Plus-IrisXe-Tahoe
+cd Hackintosh-XPS13Plus-IrisXe-Tahoe
+zsh install.sh</pre>
+
+<p><code>install.sh</code> installs Apple's Tiger Lake driver kexts into <code>/Library/Extensions</code> and sets the
+accelerator's <code>IOPCIPrimaryMatch</code> to <code>0x9a498086</code>, so the stock TGL driver binds your 9A49.</p>
+
+<h3>6.2 Add the two kexts</h3>
+<pre>cp -R /Volumes/MACINSTALL/post-install/NootedGreen.kext  /Volumes/EFI/EFI/OC/Kexts/
+cp -R /Volumes/MACINSTALL/post-install/AMFIPass.kext     /Volumes/EFI/EFI/OC/Kexts/</pre>
+<p>Then add both to <code>Kernel &rarr; Add</code> in <code>config.plist</code> (ProperTree, Ctrl+R snapshot), after Lilu and WhateverGreen.</p>
+
+<h3>6.3 Boot arguments</h3>
+<pre>keepsyms=1 debug=0x100 alcid=11 amfi_get_out_of_my_way=1 \
+-allow3d -disablegfxfirmware ngreen-eu=80 ngreen-l3=6</pre>
+
+<p>Removed from the installer set: <code>-v</code> and <code>-igfxvesa</code>. Everything else stays.
+The two <code>ngreen-eu</code> / <code>ngreen-l3</code> values are the 80 EU / 6 L3-bank description of your exact part;
+the repo documents a native i5-1135G7 9A49 (HP Dragonfly G2) needing precisely these.</p>
+
+<h3>6.4 Verify</h3>
+<pre>system_profiler SPDisplaysDataType        # "Intel Iris Xe Graphics", Metal: Supported
+ioreg -l | grep -i IOAccelerator
+sysctl -n machdep.xcpm.mode                # 1</pre>
+
+<h2 id="gpu">7. GPU performance</h2>
+
+<p>You are on the same driver stack as the reference project: Apple's own Tiger Lake driver, patched in memory by
+NootedGreen. There is no second, faster path for Iris Xe on Tahoe.</p>
+
+<table>
+<tr><th>Lever</th><th>Effect</th></tr>
+<tr><td><code>ngreen-eu=80 ngreen-l3=6</code></td><td>describes your real topology. Without it NootedGreen assumes 96 EU / 8 banks, which causes rendering artifacts on 80 EU parts.</td></tr>
+<tr><td><code>-allow3d</code></td><td>enables the 3D engine path</td></tr>
+<tr><td><code>-disablegfxfirmware</code></td><td>GuC-less host scheduling (required on this stack)</td></tr>
+<tr><td><code>-ngreengva</code> + VA plugin</td><td>hardware H.264/HEVC decode; the single biggest real-world speedup for video</td></tr>
+<tr><td>GPU clock</td><td>~1300&nbsp;MHz under load; requests RP0 1500&nbsp;MHz but package power caps it</td></tr>
+</table>
+
+<div class="warn">
+<p><strong>Do not copy the XPS boot-args verbatim.</strong> <code>ngreenpm=22</code>, <code>ngreen-dmc=adlp</code>,
+<code>-ngreentglwithgfx</code>, <code>ngreenV142=3</code>, <code>ngreenblmax=17777</code> are Raptor Lake specifics.
+On native Tiger Lake they are wrong or meaningless.</p>
+</div>
+
+<p>OpenGL will stay software-rendered. That is a property of Tahoe, not of your config. Anything using Metal
+(Games via MoltenVK, Safari/Chrome compositing, Photos, Final Cut-style apps) is hardware accelerated.</p>
+
+<h2 id="cpu">8. CPU performance</h2>
+
+<p>Your CPU needs no patches. It is a plain 4-core Tiger Lake with no E-cores, so:</p>
+
+<ul>
+  <li><span class="y">XCPM works natively</span> &mdash; enabled by <code>SSDT-PLUG</code> (<code>plugin-type=1</code>), which is already in the EFI.</li>
+  <li><code>AppleXcpmCfgLock=True</code> is set, so the locked MSR 0xE2 does not block power management.</li>
+  <li><span class="n">Do not add <code>-ngreenpm</code>.</span> It exists to fix hybrid 12th/13th-gen P-core turbo limits and patches XCPM code verified on those CPUs. On Tiger Lake it is unnecessary and risky.</li>
+  <li><code>CpuTopologyRebuild</code> is not needed (no E-cores).</li>
+</ul>
+
+<p>Verify turbo is being reached:</p>
+<pre>sysctl -n hw.ncpu                       # 8
+sysctl -n machdep.xcpm.mode             # 1
+pmset -g therm                          # CPU_Speed_Limit should sit at 100
+sudo powermetrics --samplers cpu_power -n 1 | head -20</pre>
+
+<p>Sustained performance on this chassis is thermal, not software: a 15&nbsp;W Tiger Lake in a thin convertible
+will settle around 2.4&ndash;3.0&nbsp;GHz all-core. A repaste and a laptop stand do more than any config key.</p>
+
+<h2 id="pen">9. Pen, touchscreen, touchpad</h2>
+
+<p>All three devices sit on I2C and are already handled by the ACPI in your firmware:</p>
+
+<table>
+<tr><th>Device</th><th>ACPI path</th><th>Declared interrupt</th></tr>
+<tr><td>Touchpad ELAN06FA</td><td><code>\_SB.PC00.I2C0.TPD0</code></td><td><code>GpioInt</code> on <code>\_SB.GPI0</code>, pin written at runtime by <code>_INI</code></td></tr>
+<tr><td>Touchscreen / pen WACF2200</td><td><code>\_SB.PC00.I2C1.TPD0</code></td><td>same pattern</td></tr>
+</table>
+
+<p>Because the interrupt pin is declared (the firmware patches the pin number into the resource template at
+<code>_INI</code> time), <strong>no custom <code>SSDT-I2C</code> is required</strong>. That is the usual failure point on
+other Lenovo models, and it does not apply here.</p>
+
+<h3>If the pen does not respond</h3>
+<ol>
+  <li>Check the kext bound: <code>ioreg -l | grep -iE "VoodooI2C|VoodooI2CHID"</code></li>
+  <li>Check the device was found: <code>ioreg -l | grep -iE "WACF|ELAN06|HIDDigitizer"</code></li>
+  <li>Add <code>-vi2c-force-polling</code> to boot-args (drops interrupts, costs battery, proves the bus works).</li>
+  <li>If polling makes it work but interrupts do not, the OpCore <code>SSDT-GPI0</code> + <code>GPI0 _STA &rarr; XSTA</code> rename is the thing to revisit.</li>
+  <li>Gestures (one-finger scroll, pen mode, right-click hold) are a user-space extra in the repo: <code>zsh tools/build-xe-toque.sh</code>.</li>
+</ol>
+
+<div class="note">
+<p>Pen <em>pressure and tilt</em> depend on the HID report descriptor being passed through untouched by VoodooI2CHID.
+Expect the pen to move the pointer first; pressure sensitivity in drawing apps is the second thing to verify, in an app
+that reports it (Krita, Blender, or a tablet tester).</p>
+</div>
+
+<h2 id="trouble">10. Troubleshooting</h2>
+
+<table>
+<tr><th>Symptom</th><th>Cause / fix</th></tr>
+<tr><td>Stops at <code>apfs_module_start</code></td><td>storage mode; check VMD/RAID off in BIOS</td></tr>
+<tr><td>Stops at <code>IOConsoleUsers</code>, black screen, backlight on</td><td>GPU stack not matching; boot with <code>-igfxvesa</code> again and re-check NootedGreen version</td></tr>
+<tr><td>Garbled pixels / artifacts</td><td>missing <code>ngreen-eu=80 ngreen-l3=6</code></td></tr>
+<tr><td>No Wi-Fi in the installer</td><td>AirportItlwm not loading; check <code>Kernel &rarr; Add</code> enabled</td></tr>
+<tr><td>No audio</td><td>try layout 18, 96, 97, 99, 100, 101 instead of 11</td></tr>
+<tr><td>Touchpad dead</td><td>add <code>-vi2c-force-polling</code>, then fix interrupts</td></tr>
+<tr><td>Random panic under load</td><td>thermal or the AMFI patch; confirm <code>amfi_get_out_of_my_way=1</code> is present</td></tr>
+<tr><td>Boots but no acceleration</td><td><code>install.sh</code> not run, or TGL kexts not in <code>/Library/Extensions</code></td></tr>
+</table>
+
+<h2 id="recover">11. Recovery and rollback</h2>
+
+<ul>
+  <li><strong>Windows is gone</strong> from the internal disk. There is no Windows partition to fall back to.</li>
+  <li>The USB holds a working OpenCore + recovery. Keep it &mdash; it is your rescue disk.</li>
+  <li>macOS Recovery: hold <code>Cmd+R</code> at the OpenCore picker, or pick the recovery entry.</li>
+  <li>To return to Windows later you need a Windows ISO on a second stick; nothing on this one will help.</li>
+  <li>Before any risky config edit, copy <code>EFI\OC\config.plist</code> to <code>config.working.plist</code>.</li>
+</ul>
+
+<footer>
+Generated for this exact machine (Lenovo IdeaPad Flex 5 14ITL05, i5-1135G7, 9A49).<br>
+Driver stack: <a href="https://github.com/JulioNectar/Hackintosh-XPS13Plus-IrisXe-Tahoe">JulioNectar/Hackintosh-XPS13Plus-IrisXe-Tahoe</a>.
+</footer>
+
+</div>
+</body>
+</html>
