@@ -1,5 +1,7 @@
 ﻿# macOS Tahoe 26 on Lenovo IdeaPad Flex 5 14ITL05
 
+**Read the guide online: https://nerdjb.github.io/lenovo-flex5-14itl05-tahoe/**
+
 OpenCore 1.0.8 EFI + documentation for **Lenovo IdeaPad Flex 5 14ITL05 (82HS)**,
 i5-1135G7 (Tiger Lake), Intel Iris Xe 80 EU (8086:9A49).
 
@@ -49,3 +51,4 @@ Raptor Lake values from the reference machine.
 - VoodooI2C team, OpenIntelWireless, lzhoang2801 (OpCore-Simplify), USBToolBox
 
 No warranty. Flashing firmware or erasing disks can destroy data.
+
